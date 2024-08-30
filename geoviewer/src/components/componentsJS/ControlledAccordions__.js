@@ -76,7 +76,6 @@ export default function ControlledAccordions({onSubmit}) {
     rf: false,
     svm: false,
     knn: false,
-    soilDataFiles: [],
     aoiDataFiles: [],
     startDate: "2024-04-14",
     endDate: "2024-05-14",
@@ -156,70 +155,6 @@ export default function ControlledAccordions({onSubmit}) {
     
   };
 
-  const handleColumnChange = (event) => {
-    setSelectedColumn(event.target.value);
-  };
-
-  const handleModelFeatures = () => {
-    switch (selectedOption) {
-      case 'rf':
-        return (
-          <>
-            <div>
-              <Typography className={classes.inputLabel}>Number of trees</Typography>
-              <TextField
-                className={classes.formControl}
-                variant="outlined"
-                name="numberOfTrees"
-                value={formData.modelFeatures.numberOfTrees}
-                onChange={handleChange}
-                type="number"
-              />
-            </div>
-            &nbsp;&nbsp;
-            <div>
-              <Typography className={classes.inputLabel}>Seed</Typography>
-              <TextField
-                className={classes.formControl}
-                variant="outlined"
-                name="seed"
-                value={formData.modelFeatures.seed}
-                onChange={handleChange}
-                type="number"
-                inputProps={{ step: "0.0001" }}
-              />
-            </div>
-            &nbsp;&nbsp;
-            <div>
-              <Typography className={classes.inputLabel}>Bag fraction</Typography>
-              <TextField
-                className={classes.formControl}
-                variant="outlined"
-                name="bagFraction"
-                value={formData.modelFeatures.bagFraction}
-                onChange={handleChange}
-                type="number"
-              />
-            </div>
-          </>
-        );
-      case 'svm':
-        return (
-          <>
-            {/* Add SVM specific features here */}
-          </>
-        );
-      case 'knn':
-        return (
-          <>
-            {/* Add KNN specific features here */}
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   const handlePreviewIcon = (fileObject, classes) => {
     const {type} = fileObject.file
     const iconProps = {
@@ -245,7 +180,6 @@ export default function ControlledAccordions({onSubmit}) {
       setTimer(0); // Reset the timer when the submit button is clicked
       const data = new FormData();
       
-      data.append('soilDataFiles', formData.soilDataFiles[0]);
       data.append('aoiDataFiles', formData.aoiDataFiles[0]);
 
       for (const key in formData.satelliteData) {
@@ -266,7 +200,7 @@ export default function ControlledAccordions({onSubmit}) {
       
       console.log(data);
 
-      const response = await fetch('http://localhost:5004/soil_organic_prediction', {
+      const response = await fetch('http://localhost:5004/rusle', {
          method: 'POST',
          body: data
       });
@@ -290,36 +224,6 @@ export default function ControlledAccordions({onSubmit}) {
 
   return (
     <div className={classes.root}>
-      <Accordion expanded={expanded === 'panel1'} onChange={handleChangeExp('panel1')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel1bh-content"
-          id="panel1bh-header"
-        >
-          <Typography className={classes.heading}>Machine learning algorithm</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <FormGroup className={classes.checkBoxContainer}>
-            <RadioGroup row name="options" value={selectedOption} onChange={handleChange}>
-              <FormControlLabel
-                value="rf"
-                control={<Radio />}
-                label="RF"
-              />
-              <FormControlLabel
-                value="svm"
-                control={<Radio />}
-                label="SVM"
-              />
-              <FormControlLabel
-                value="knn"
-                control={<Radio />}
-                label="KNN"
-              />
-            </RadioGroup>
-          </FormGroup>
-        </AccordionDetails>
-      </Accordion>
       <Accordion expanded={expanded === 'panel2'} onChange={handleChangeExp('panel2')}>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
@@ -341,31 +245,6 @@ export default function ControlledAccordions({onSubmit}) {
             />
         </AccordionDetails>
       </Accordion>
-      {numericColumns.length > 0 ? (<><Accordion expanded={expanded === 'panel6'} onChange={handleChangeExp('panel6')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel4bh-content"
-          id="panel4bh-header"
-        >
-          <Typography className={classes.heading}>Variable to Estimate</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-        <FormControl fullWidth>
-        <InputLabel id="numeric-column-selector-label">Select Value to Estimate</InputLabel>
-        <Select
-          labelId="numeric-column-selector-label"
-          id="numeric-column-selector"
-          value={selectedColumn}
-          label="Select Numeric Column"
-          onChange={handleColumnChange}
-        >
-          {numericColumns.map((column, index) => (
-            <MenuItem key={index} value={column}>{column}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-        </AccordionDetails>
-      </Accordion></>) : <></>}
       
       <Accordion expanded={expanded === 'panel3'} onChange={handleChangeExp('panel3')}>
         <AccordionSummary
@@ -373,7 +252,7 @@ export default function ControlledAccordions({onSubmit}) {
           aria-controls="panel3bh-content"
           id="panel3bh-header"
         >
-          <Typography className={classes.heading}>Spectral Information Data</Typography>
+          <Typography className={classes.heading}>Dates</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2}>
@@ -402,91 +281,6 @@ export default function ControlledAccordions({onSubmit}) {
               />
             </Grid>
           </Grid>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <FormControl component="fieldset" className={classes.formControl}>
-                <Typography variant="subtitle1">Satellite Data:</Typography>
-                <FormGroup>
-                  <FormControlLabel
-                    control={<Checkbox name="sentinel1" checked={formData.satelliteData.sentinel1} onChange={handleChange} />}
-                    label="Sentinel-1"
-                  />
-                  <FormControlLabel
-                    control={<Checkbox name="sentinel2" checked={formData.satelliteData.sentinel2} onChange={handleChange} />}
-                    label="Sentinel-2"
-                  />
-                  <FormControlLabel
-                    control={<Checkbox name="landsat" checked={formData.satelliteData.landsat} onChange={handleChange} />}
-                    label="Landsat"
-                  />
-                </FormGroup>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl component="fieldset" className={classes.formControl}>
-                <Typography variant="subtitle1">Indexes:</Typography>
-                <FormGroup>
-                  <FormControlLabel
-                    control={<Checkbox name="vegetationIndexes" checked={formData.indexes.vegetationIndexes} onChange={handleChange} />}
-                    label="Vegetation indexes"
-                  />
-                  <FormControlLabel
-                    control={<Checkbox name="brightnessIndexes" checked={formData.indexes.brightnessIndexes} onChange={handleChange} />}
-                    label="Brightness indexes"
-                  />
-                  <FormControlLabel
-                    control={<Checkbox name="moistureIndexes" checked={formData.indexes.moistureIndexes} onChange={handleChange} />}
-                    label="Moisture indexes"
-                  />
-                </FormGroup>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel4'} onChange={handleChangeExp('panel4')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel4bh-content"
-          id="panel4bh-header"
-        >
-          <Typography className={classes.heading}>Model features</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {handleModelFeatures()}
-        </AccordionDetails>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel5'} onChange={handleChangeExp('panel5')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel4bh-content"
-          id="panel4bh-header"
-        >
-          <Typography className={classes.heading}>Model Performance Indicators</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <FormGroup className={classes.checkBoxContainer}>
-            <FormControlLabel
-              control={<Checkbox name="rsquare" checked={formData.performanceIndicators.rsquare} onChange={handleChange} />}
-              label="R SQUARE"
-            />
-            <FormControlLabel
-              control={<Checkbox name="rmse" checked={formData.performanceIndicators.rmse} onChange={handleChange} />}
-              label="RMSE"
-            />
-            <FormControlLabel
-              control={<Checkbox name="mse" checked={formData.performanceIndicators.mse} onChange={handleChange} />}
-              label="MSE"
-            />
-            <FormControlLabel
-              control={<Checkbox name="mae" checked={formData.performanceIndicators.mae} onChange={handleChange} />}
-              label="MAE"
-            />
-            <FormControlLabel
-              control={<Checkbox name="rpiq" checked={formData.performanceIndicators.rpiq} onChange={handleChange} />}
-              label="RPIQ"
-            />
-          </FormGroup>
         </AccordionDetails>
       </Accordion>
       <div>

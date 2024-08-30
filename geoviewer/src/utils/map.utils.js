@@ -2,7 +2,8 @@
 
 const mapStyles = {
     Satellite:'mapbox://styles/mapbox/satellite-v9',
-    Custom:'mapbox://styles/almafe2510/clw7qv6il02ok01qr9w4wdbv0'
+    Custom:'mapbox://styles/almafe2510/clw7qv6il02ok01qr9w4wdbv0',
+    Standard: ''
 };
 
 const buildHeatmapStyle = (color) => {

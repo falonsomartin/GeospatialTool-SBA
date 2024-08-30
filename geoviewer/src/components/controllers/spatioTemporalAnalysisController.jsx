@@ -1,22 +1,20 @@
 /* Written by Ye Liu */
 
 import React from 'react';
-import M from 'materialize-css';
 import Slide from '@material-ui/core/Slide';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import { Typography, Icon, IconButton } from '@material-ui/core';
   
-import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import indigo from '@material-ui/core/colors/indigo';
 
 import emitter from '@utils/events.utils';
 import request from '@utils/request.utils';
-import { checkEmptyObject } from '@utils/method.utils';
 import { ACCESS_TOKEN, SERVICE } from '@/config';
 
 import '@styles/dataController.style.css';
-import ControlledAccordions from '@components/componentsJS/ControlledAccordions_';
+import HorizontalLinearStepperData from '../componentsJS/StepperData';
 
 const theme = createTheme({
     palette: {
@@ -181,127 +179,9 @@ const styles = {
     }
 };
 
-class ModelController extends React.Component {
+class SpatioTemporalAnalysisController extends React.Component {
     state = {
         open: false,
-        resultUnwrap: false,
-        addPointUnwrap: false,
-        optionsOpen: false,
-        searching: false,
-        submitting: false,
-        anchorEl: null,
-        geometry: null,
-        previewImage: null,
-        previewMapUrl: null,
-        previewCoordinate: {},
-        loading: true,
-        traces: [],
-        precipitationData:[],
-        temperatureData: [],
-        watsatData: [],
-        layoutTemperature: {
-            title: 'Temperatura del Aire HC',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Temperatura (°C)' }
-        },
-        layoutPrecipitation: {
-            title: 'Precipitación',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Precipitación (mm)' }
-        },
-        layoutWatsat: {
-            title: 'Modelo Watsat',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Contenido Volumétrico de Agua' }
-        },
-        layout: {
-            barmode: 'stack',
-            title: 'Avistamientos de insectos por día',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Cantidad' }
-        },
-        items: [
-            {id: 1, title: 'item #1'},
-            {id: 2, title: 'item #2'},
-            {id: 3, title: 'item #3'},
-            {id: 4, title: 'item #4'},
-            {id: 5, title: 'item #5'}
-          ]
-        ,
-        data: [],
-        expanded:false,
-        searchOptions: [
-            {
-                value: 'gid',
-                label: 'Gid',
-                checked: true
-            },
-            {
-                value: 'name',
-                label: 'Name',
-                checked: true
-            },
-            {
-                value: 'pinyin',
-                label: 'Pinyin',
-                checked: true
-            },
-            {
-                value: 'introduction',
-                label: 'Introduction',
-                checked: false
-            }
-        ]
-    }
-
-    calculateSustainabilityIndex = () => {
-        let IoValue = this.state.Io === 1 ? this.state.IoType : 0; // Ajustar el valor de Io basado en si se aplica o no fertilizante
-        const index = 2.45 * this.state.Ic + 2.18 * this.state.Ih + 1.64 * this.state.Ig + 1.09 * IoValue + 1 * this.state.If;
-        this.setState({
-            sustainabilityIndex:index
-        })
-    };
-
-    handleDecision = (choice) => {
-        this.setState({ decision: choice });
-      };    
-
-    initMaterialbox = () => {
-        var elems = document.querySelectorAll('.materialboxed');
-        M.Materialbox.init(elems, {
-            onOpenStart: (e) => {
-                e.parentNode.style.overflow = 'visible';
-            },
-            onCloseEnd: (e) => {
-                e.parentNode.style.overflow = 'hidden';
-            }
-        });
-    }
-    
-    resetPreviewImage = () => {
-        this.setState({
-            previewImage: null
-        });
-    }
-
-    resetNewPointData = () => {
-        this.setState({
-            previewMapUrl: null,
-            geometry: null,
-            previewCoordinate: {}
-        });
     }
 
     handleCloseClick = () => {
@@ -311,28 +191,11 @@ class ModelController extends React.Component {
     }
 
     handleDataSubmit = (data) => {
-        this.setState({url: data.output})
-        console.log("Datos recibidos en ModelController:", data.output);
+        this.setState({url: data})
+        console.log("Datos recibidos en BandController:", data);
         emitter.emit('moveURL', this.state.url);
         // Puedes manejar los datos como desees aquí
       };
-
-    handleAddClick = () => {
-        // Get GeoJSON from map
-        emitter.emit('getPoint');
-
-        // Exit search mode
-        this.handleWrapClick();
-
-        // Initialize new point data
-        this.resetPreviewImage();
-        this.resetNewPointData();
-
-        // Wrap add point panel
-        this.setState({
-            addPointUnwrap: false
-        });
-    }
 
     handleWrapClick = () => {
         // Remove temp layer
@@ -348,43 +211,6 @@ class ModelController extends React.Component {
             resultUnwrap: false
         });
     }
-
-    handleImageChange = (e) => {
-        // Check if file selected
-        if (!e.target.files[0]) {
-            return;
-        }
-
-        // Check image size (smaller than 1MB)
-        if (e.target.files[0].size > 1048576) {
-            emitter.emit('showSnackbar', 'error', 'Error: Image must be smaller than 1MB.');
-            return;
-        }
-
-        // Encode image with base64
-        this.state.reader.readAsDataURL(e.target.files[0]);
-    }
-
-    handleDoneEdit = () => {
-        // Reset preview image
-        this.resetPreviewImage();
-
-        // Initialize Materialbox
-        setTimeout(this.initMaterialbox, 800);
-    }
-
-    handleSearchOptionsClick = () => {
-        this.setState({
-            optionsOpen: true
-        });
-    }
-
-    handleSearchOptionsClose = () => {
-        this.setState({
-            optionsOpen: false
-        });
-    }
-
     
     handleSearchOptionChange = (e) => {
         // Update search options
@@ -476,12 +302,6 @@ class ModelController extends React.Component {
         this.setState({ [event.target.name]: Number(event.target.value) });
     };
 
-    calculateSustainabilityIndex = () => {
-        const { Ic, Ih, Ig, Io, If, IoType } = this.state;
-        let IoValue = Io === 1 ? IoType : 0;
-        const index = 2.45 * Ic + 2.18 * Ih + 1.64 * Ig + 1.09 * IoValue + 1 * If;
-        this.setState({ sustainabilityIndex: index });
-    };
 
     handleSubmitClick = () => {
         // Remove temp point
@@ -540,97 +360,6 @@ class ModelController extends React.Component {
         });
     }
 
-    handleRowUpdate = (newData, oldData) => {
-        return new Promise(resolve => {
-            // Check if Gid changed
-            if (oldData.gid !== newData.gid) {
-                emitter.emit('showSnackbar', 'error', "Column 'Gid' is readonly.");
-            }
-
-            // Generate request parameters
-            var params = {
-                gid: oldData.gid
-            };
-
-            if (this.state.previewImage) {
-                newData.image = this.state.previewImage;
-            } else {
-                newData.image = {};
-            }
-
-            Object.keys(newData).map(key => {
-                if (key !== 'geometry' && newData[key] !== oldData[key]) {
-                    params[key] = newData[key]
-                }
-                return true;
-            });
-
-            // return if nothing to update
-            if (checkEmptyObject(params)) {
-                emitter.emit('showSnackbar', 'default', 'Nothing to update.');
-                return;
-            }
-
-            // Initiate request
-            request({
-                url: SERVICE.update.url,
-                method: SERVICE.update.method,
-                params: params,
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Update ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = this.state.data;
-                    data[data.indexOf(oldData)] = newData;
-                    this.setState({
-                        data: data
-                    });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
-        });
-    }
-
-    handleRowDelete = (oldData) => {
-        return new Promise(resolve => {
-            // Initiate request
-            request({
-                url: SERVICE.delete.url,
-                method: SERVICE.delete.method,
-                params: {
-                    gid: oldData.gid
-                },
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Delete ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = [...this.state.data];
-                    data.splice(data.indexOf(oldData), 1);
-                    this.setState({ ...this.state, data });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Remove temp layer
-                    emitter.emit('removeTempLayer');
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
-        });
-    }
 
     componentDidMount() {
         // Initialize popover
@@ -661,7 +390,7 @@ class ModelController extends React.Component {
         });
 
         // Bind event listeners
-        this.openModelControllerListener = emitter.addListener('openModelController', () => {
+        this.openSpatioTemporalAnalysisControllerListener = emitter.addListener('openSpatioTemporalAnalysisController', () => {
             this.setState({
                 open: true
             });
@@ -696,36 +425,7 @@ class ModelController extends React.Component {
     }
 
     
-    setIc(e){
-        this.setState({
-            Ic:e
-        })
-    }
-    setIh(e){
-        this.setState({
-            Ih:e
-        })
-    }
-    setIg(e){
-        this.setState({
-            Ig:e
-        })
-    }
-    setIo(e){
-        this.setState({
-            Io:e
-        })
-    }
-    setIoType(e){
-        this.setState({
-            IoType:e
-        })
-    }
-    setIf(e){
-        this.setState({
-            If:e
-        })
-    }
+    
 
     moveURL = () => {
         var url = this.state.url
@@ -733,45 +433,15 @@ class ModelController extends React.Component {
         console.log(this.state.movedURL)
 
     }
-    processTemperatureData = (data) => {
-        const trace = {
-            type: 'scatter', 
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Temperatura del Aire HC',
-        };
-
-        this.setState(({
-            temperatureData: [trace],
-            loading: false // Mantiene el estado de carga si hay más datos por cargar
-        }));
-    }
-
-    processPrecipitationData = (data) => {
-        const trace = {
-            type: 'scatter',
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Precipitación'
-        };
-
-        this.setState({ precipitationData: [trace], loading: false });
-    }
-
+    
 
     componentWillUnmount() {
         // Remove event listeners
-        emitter.removeListener(this.openModelControllerListener);
+        emitter.removeListener(this.openSpatioTemporalAnalysisControllerListener);
         emitter.removeListener(this.closeAllControllerListener);
         emitter.removeListener(this.addPointListener);
         emitter.removeListener(this.updatePointListener);
         emitter.removeListener(this.moveURListener);
-
-
-        // Destory Materialbox
-        //                         {loading ? <p>Cargando datos...</p> : <Plot data={traces} layout={layout} />}
 
         var elems = document.querySelectorAll('.materialboxed');
         elems.map(elem => elem.destory());
@@ -779,23 +449,23 @@ class ModelController extends React.Component {
 
     render() {        
         return (
-            <MuiThemeProvider theme={theme}>
+            <ThemeProvider theme={theme}>
                 <Slide direction="left" in={this.state.open}>
                     <Card style={styles.root}>
                         {/* Card header */}
                         <CardContent style={styles.header}>
-                        <Typography variant="h5" className={styles.title}>Digital Soil Mapping</Typography>
+                        <Typography variant="h5" className={styles.title}>Spatiotemporal Analysis</Typography>
                         &nbsp;&nbsp;
-            <ControlledAccordions onSubmit={this.handleDataSubmit}/>
+                        <HorizontalLinearStepperData/>
             <IconButton style={styles.closeBtn} aria-label="Close" onClick={this.handleCloseClick}>
                                 <Icon fontSize="inherit">chevron_right</Icon>
                             </IconButton>
                         </CardContent>
                     </Card>
                 </Slide>
-            </MuiThemeProvider >
+            </ThemeProvider >
         );
     }
 }
 
-export default ModelController;
+export default SpatioTemporalAnalysisController;

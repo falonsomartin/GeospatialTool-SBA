@@ -3,6 +3,38 @@
 import React from 'react';
 import M from 'materialize-css';
 
+const styles = {
+    root: {
+        position: 'fixed',
+        top: 0,
+        zIndex: 900
+    },
+    logoContainer: {
+        height: '60px',
+        padding: '2px 10px 1px 0px;',
+    },
+    logo: {
+        height: '55px',
+    },
+    flexContainer: {
+        position: 'absolute',
+        right: 12,
+        display: 'flex',
+        flexDirection: 'row-reverse',
+        justifyContent: 'flex-start'
+    },
+    svgIcon: {
+        width: 24,
+        height: 24
+    },
+    fontIcon: {
+        fontSize: 29
+    },
+    toolbar:{
+        background: '#89ca92'
+    }
+};
+
 class About extends React.Component {
     state = {
         modal: null
@@ -30,11 +62,13 @@ class About extends React.Component {
                 <div className="modal-content">
                     <h4>About</h4>
                     <p>
-                        GeoLivar.
+                    Designed & Written by&nbsp;
+                    <a href="https://evenor-tech.com/">Evenor-Tech</a>.
                     </p>
                     <p>
-                        Designed & Written by&nbsp;
-                        <a href="https://evenor-tech.com/">Evenor-Tech</a>.
+                        <a style={styles.logoContainer} href="https://www.steambioafrica.com/">
+                        <img style={styles.logo} src="./static/assets/eu.png" alt="" />
+                        </a>
                     </p>
                     
                 </div>

@@ -119,6 +119,15 @@ class Navigator extends React.Component {
                         <img style={styles.logo} src="./static/assets/logo.png" alt="" />
                         </a>
 
+                        &nbsp;
+                        &nbsp;
+                        &nbsp;
+                        &nbsp;
+
+                        <a style={styles.logoContainer} href="https://www.steambioafrica.com/">
+                        <img style={styles.logo} src="./static/assets/bioafrica.png" alt="" />
+                        </a>
+
                         {/* Icons */}
                         <div style={styles.flexContainer}>
                             <Tooltip title="About" aria-label="About" enterDelay={200}>

@@ -4,7 +4,6 @@ import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import MapboxTraffic from '@mapbox/mapbox-gl-traffic';
 import mapboxgl from 'mapbox-gl';
 import React from 'react';
-import GeoTIFF from 'geotiff';
 
 
 import geocoder from '@plugins/geocoder.plugin';
@@ -41,7 +40,6 @@ class Canvas extends React.Component {
     }
     
     flyToGeometry(map, geometry) {
-        console.log(geometry)
         const type = geometry.type;
         let coordinates;
     
@@ -110,7 +108,6 @@ class Canvas extends React.Component {
         });
 
         layers.map(layer => {
-            console.log(layer.id)
             if (layer.id.includes('-boundary')) {
                 this.state.map.removeLayer(layer.id);
                 this.state.map.removeSource(layer.source);
@@ -190,7 +187,6 @@ class Canvas extends React.Component {
             zoom: 17,
             antialias: true
         });
-        console.log(map.container)
         // Initialize map draw plugin
         const draw = new MapboxDraw({
             controls: {
@@ -237,6 +233,12 @@ class Canvas extends React.Component {
             document.getElementById('loader-wrapper').classList.add('loaded');        
             
         });
+        
+
+        map.on('click', (event) => {
+            const { lng, lat } = event.lngLat;
+            console.log(`Longitude: ${lng}, Latitude: ${lat}`); // Muestra en consola o procesa según necesites
+        });
 
         // Suponiendo que 'map' es tu objeto Mapbox
         map.on('zoomend', function() {
@@ -265,6 +267,7 @@ class Canvas extends React.Component {
                 gettingPoint: false
             })
         });
+        
 
         this.fetchData();
 
@@ -284,11 +287,12 @@ class Canvas extends React.Component {
             });
             this.state.map.removeControl(this.state.minimap);
             this.state.map.addControl(minimap, 'bottom-left');
-            console.log(mapStyles[e])
             this.setState({
                 minimap: minimap,
                 styleCode: mapStyles[e].substring(16)
             });
+
+            
         });
 
         this.displayDatasetListener = emitter.addListener('displayDataset', (id, geometry) => {
@@ -429,17 +433,29 @@ class Canvas extends React.Component {
             popup: popup
         });
 
+        this.moveMAPistener = emitter.addListener('moveMAP', () => {
+            console.log("MAP")
+            this.moveMAP();
+        });
+
         emitter.on('moveURL', this.handleURLMoved);
 
-
         
+    }
+    moveMAP = () => {
+        var map = this.state.map
+        console.log(map)
+        this.setState({ movedMAP: map });
+        console.log(this.state.movedMAP)
+
     }
 
     handleURLMoved = (movedURL) => {
         console.log('Received moved data:', movedURL);
         this.removeAllLayer();
         // Aquí puedes hacer algo con los datos, como establecer el estado
-        this.setState({ url: movedURL });
+        this.setState({ url: movedURL.output[0] });
+        console.log(movedURL.output[0])
         this.state.map.addLayer({
             'id': 'predictedSOC',
             'type': 'raster',
@@ -454,9 +470,54 @@ class Canvas extends React.Component {
                 'raster-opacity': 0.8  // Opacidad de la capa de ráster
             }
         });
-    }
+        this.updateLegend(movedURL.output[1]);
+        emitter.emit('moveMAP', this.state.map);
+
+    };
+    
+    
+    updateLegend = (visualization_parameters) => {
+        const { min, max, palette } = visualization_parameters;
+        const legend = document.getElementById('legend');
+        
+        if (!legend) {
+            console.error('Legend element not found');
+            return;
+        }
+    
+        legend.innerHTML = '';
+    
+        const steps = palette.length;
+        const stepValue = (max - min) / (steps - 1);
+    
+        palette.forEach((color, index) => {
+            const value = (min + stepValue * index).toFixed(2);
+            const item = document.createElement('div');
+            item.style.display = "flex";
+            item.style.alignItems = "center";
+            item.style.marginBottom = "5px";
+            item.innerHTML = `<i style="background: ${color}; width: 20px; height: 20px; display: inline-block; margin-right: 8px;"></i> <span style="font-size: 12px;">${value}</span>`;
+            legend.appendChild(item);
+        });
+    
+        // Apply additional styles to the legend container
+        legend.style.position = "fixed";
+        legend.style.bottom = "10px";
+        legend.style.left = "10px";
+        legend.style.width = "150px";
+        legend.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+        legend.style.border = "2px solid grey";
+        legend.style.borderRadius = "8px";
+        legend.style.padding = "10px";
+        legend.style.fontSize = "12px";
+        legend.style.zIndex = "9999";
+        legend.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.5)";
+    };
+    
 
     fetchData = () => {
+
+    
 
     }
 
@@ -471,14 +532,19 @@ class Canvas extends React.Component {
         emitter.removeListener(this.removeAllLayerListener);
         emitter.removeListener(this.getPointListener);
         emitter.removeListener(this.removeTempPointListener);
+        emitter.removeListener(this.moveMAPistener);
+
 
     }
 
 
     render() {
-        console.log(this.state.map)
+        
         return (
-            <div id="map" style={styles.root} ref={this.mapContainer}></div>
+            <div id="map" style={styles.root} ref={this.mapContainer}>
+                <div id="legend"></div>
+            </div>
+            
         );
     }
 }

@@ -15,10 +15,12 @@ import DataController from '@components/controllers/dataController';
 import Canvas from '@components/canvas';
 import Popup from '@components/popup';
 import '@styles/materialize.min.style.css';
-import ModelController from '../components/controllers/modelController';
 import SyncController from '../components/controllers/syncController';
-import BandController from '../components/controllers/bandController';
 import TreeController from '../components/controllers/treeController';
+import RusleController from '../components/controllers/rusleController';
+import SocController from '../components/controllers/socController'
+import VegInspectorController from '../components/controllers/vegInspectorController';
+import SpatioTemporalAnalysisController from '../components/controllers/spatioTemporalAnalysisController';
 
 class Main extends React.Component {
     render() {
@@ -33,8 +35,10 @@ class Main extends React.Component {
                     <Feature />
                     <StyleController />
                     <LayerController />
-                    <ModelController />
-                    <BandController/>
+                    <SocController />
+                    <RusleController />
+                    <VegInspectorController/>
+                    <SpatioTemporalAnalysisController/>
                     <TreeController/>
                     <DataController />
                     <SyncController />

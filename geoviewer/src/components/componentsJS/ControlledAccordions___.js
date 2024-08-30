@@ -119,7 +119,7 @@ export default function ControlledAccordions({ onSubmit }) {
       data.append('startDate', formData.startDate)
       data.append('endDate', formData.endDate)
 
-      const response = await fetch('http://localhost:5004/vegetation_index_change_inspector', {
+      const response = await fetch('http://localhost:5004/spatiotemporal_analysis', {
         method: 'POST',
         body: data
       });
@@ -146,7 +146,7 @@ export default function ControlledAccordions({ onSubmit }) {
           aria-controls="panel1bh-content"
           id="panel1bh-header"
         >
-          <Typography className={classes.heading}>Choose a veg index</Typography>
+          <Typography className={classes.heading}></Typography>
         </AccordionSummary>
         <AccordionDetails>
         <DropzoneArea
@@ -182,7 +182,7 @@ export default function ControlledAccordions({ onSubmit }) {
                 shrink: true,
               }}
             />
-            <InputLabel id="index-type-label">Index Type</InputLabel>
+            <InputLabel id="index-type-label">Variable to analyse</InputLabel>
             <Select
               labelId="index-type-label"
               id="index-type-select"
@@ -192,7 +192,12 @@ export default function ControlledAccordions({ onSubmit }) {
             >
               <MenuItem value="NDVI">NDVI</MenuItem>
               <MenuItem value="EVI">EVI</MenuItem>
-              <MenuItem value="SAVI">SAVI</MenuItem>
+              <MenuItem value="TSAVI">TSAVI</MenuItem>
+              <MenuItem value="MSI">MSI</MenuItem>
+              <MenuItem value="PRECIPT">PRECIPT</MenuItem>
+              <MenuItem value="TREE_COVER">TREE COVER %</MenuItem>
+              <MenuItem value="ABVGRND_CARBON">ABVGRND CARBON</MenuItem>
+
             </Select>
           </FormControl>
         </AccordionDetails>

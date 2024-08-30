@@ -22,26 +22,6 @@ class Menu extends React.Component {
         open: false,
         actions: [
             {
-                name: 'Sync data',
-                icon: <Icon>publish</Icon>,
-                color: "green",
-                callback: () => {
-                    emitter.emit('closeAllController');
-                    emitter.emit('openSyncController')
-                    this.handleClose();
-                }
-            },
-            {
-                name: 'Edit data',
-                icon: <Icon>insert_chart</Icon>,
-                color: "blue",
-                callback: () => {
-                    emitter.emit('closeAllController');
-                    emitter.emit('openDataController');
-                    this.handleClose();
-                }
-            },
-            {
                 name: 'Switch style',
                 icon: <Icon>brush</Icon>,
                 color: "red accent-2",
@@ -52,33 +32,42 @@ class Menu extends React.Component {
                 }
             },
             {
-                name: 'Models',
+                name: 'Spatiotemporal Analysis',
+                icon: <Icon>satellite_alt</Icon>,
+                color: "orange",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openSpatioTemporalAnalysisController');
+                    this.handleClose();
+                }
+            },
+            {
+                name: 'Vegetation Index Change Inspector',
+                icon: <Icon>image_search</Icon>,
+                color: "blue",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openVegInspectorController');
+                    this.handleClose();
+                }
+            },
+            {
+                name: 'Rusle Modelling',
+                icon: <Icon>grass</Icon>,
+                color: "green",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openRusleController');
+                    this.handleClose();
+                }
+            },
+            {
+                name: 'SOC Prediction',
                 icon: <Icon>psychology</Icon>,
                 color: "purple darken-1",
                 callback: () => {
                     emitter.emit('closeAllController');
-                    emitter.emit('openModelController');
-                    this.handleClose();
-                }
-            },
-            {
-                name: 'Decision Tree',
-                icon: <Icon>park</Icon>,
-                color: "green",
-                callback: () => {
-                    emitter.emit('closeAllController');
-                    emitter.emit('openTreeController');
-                    this.handleClose();
-                }
-            },
-
-            {
-                name: 'Collect indexes',
-                icon: <Icon>satellite</Icon>,
-                color: "grey",
-                callback: () => {
-                    emitter.emit('closeAllController');
-                    emitter.emit('openBandController');
+                    emitter.emit('openSocController');
                     this.handleClose();
                 }
             },
