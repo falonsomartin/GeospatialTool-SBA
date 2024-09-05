@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/geoviewer/precache-manifest.5a97700ae3aa8e826e21c711f3a4b17f.js"
+  "/geoviewer/precache-manifest.14e8d6fd1b60fa191a70f1973b89a34a.js"
 );
 
 self.addEventListener('message', (event) => {
