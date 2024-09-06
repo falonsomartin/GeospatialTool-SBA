@@ -1,7 +1,7 @@
 {
   "name": "geoviewer",
   "version": "0.1.0",
-  "homepage": "https://yeliu.me/geoviewer",
+  "homepage": "https://prueba-terrenviron.novasoil-project.eu/",
   "private": true,
   "dependencies": {
     "@babel/core": "7.4.5",
@@ -73,11 +73,11 @@
     "proj4": "^2.9.0",
     "pyodide": "^0.25.0",
     "python-shell": "^5.0.0",
-    "react": "^16.14.0",
+    "react": "^16.8.6",
     "react-app-polyfill": "^1.0.1",
     "react-auth-kit": "^2.12.3",
     "react-dev-utils": "^9.0.1",
-    "react-dom": "^16.14.0",
+    "react-dom": "^16.8.6",
     "react-elastic-carousel": "^0.11.5",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^5.0.1",

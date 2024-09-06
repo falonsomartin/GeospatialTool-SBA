@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/geoviewer/static/css/main.bea9633d.chunk.css",
-    "main.js": "/geoviewer/static/js/main.ae9cee86.chunk.js",
-    "main.js.map": "/geoviewer/static/js/main.ae9cee86.chunk.js.map",
-    "runtime~main.js": "/geoviewer/static/js/runtime~main.63e3f051.js",
-    "runtime~main.js.map": "/geoviewer/static/js/runtime~main.63e3f051.js.map",
-    "static/css/2.e9236ee5.chunk.css": "/geoviewer/static/css/2.e9236ee5.chunk.css",
-    "static/js/2.62ace8c7.chunk.js": "/geoviewer/static/js/2.62ace8c7.chunk.js",
-    "static/js/2.62ace8c7.chunk.js.map": "/geoviewer/static/js/2.62ace8c7.chunk.js.map",
-    "index.html": "/geoviewer/index.html",
-    "precache-manifest.14e8d6fd1b60fa191a70f1973b89a34a.js": "/geoviewer/precache-manifest.14e8d6fd1b60fa191a70f1973b89a34a.js",
-    "service-worker.js": "/geoviewer/service-worker.js",
-    "static/css/2.e9236ee5.chunk.css.map": "/geoviewer/static/css/2.e9236ee5.chunk.css.map",
-    "static/css/main.bea9633d.chunk.css.map": "/geoviewer/static/css/main.bea9633d.chunk.css.map"
+    "main.css": "/static/css/main.bea9633d.chunk.css",
+    "main.js": "/static/js/main.383a2920.chunk.js",
+    "main.js.map": "/static/js/main.383a2920.chunk.js.map",
+    "runtime~main.js": "/static/js/runtime~main.3064a8d6.js",
+    "runtime~main.js.map": "/static/js/runtime~main.3064a8d6.js.map",
+    "static/css/2.e9236ee5.chunk.css": "/static/css/2.e9236ee5.chunk.css",
+    "static/js/2.0972d0d6.chunk.js": "/static/js/2.0972d0d6.chunk.js",
+    "static/js/2.0972d0d6.chunk.js.map": "/static/js/2.0972d0d6.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.86147f90fd47bc862f2dca16b2dbc7c0.js": "/precache-manifest.86147f90fd47bc862f2dca16b2dbc7c0.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/2.e9236ee5.chunk.css.map": "/static/css/2.e9236ee5.chunk.css.map",
+    "static/css/main.bea9633d.chunk.css.map": "/static/css/main.bea9633d.chunk.css.map"
   }
 }
