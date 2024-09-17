@@ -11,12 +11,9 @@ import Login from '@components/login';
 import Feature from '@components/feature';
 import StyleController from '@components/controllers/styleController';
 import LayerController from '@components/controllers/layerController';
-import DataController from '@components/controllers/dataController';
 import Canvas from '@components/canvas';
 import Popup from '@components/popup';
 import '@styles/materialize.min.style.css';
-import SyncController from '../components/controllers/syncController';
-import TreeController from '../components/controllers/treeController';
 import RusleController from '../components/controllers/rusleController';
 import SocController from '../components/controllers/socController'
 import VegInspectorController from '../components/controllers/vegInspectorController';
@@ -39,9 +36,6 @@ class Main extends React.Component {
                     <RusleController />
                     <VegInspectorController/>
                     <SpatioTemporalAnalysisController/>
-                    <TreeController/>
-                    <DataController />
-                    <SyncController />
                     <Popup />
                     <Canvas />
                 </React.Fragment>

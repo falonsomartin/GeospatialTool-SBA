@@ -1,21 +1,25 @@
-/* Written by Ye Liu */
-
 import React from 'react';
 import Slider from '@material-ui/core/Slider';
 import emitter from '@utils/events.utils';
-import { Avatar, Card, CardContent, Chip, Checkbox, FormControl, Icon, IconButton, Input, InputLabel, List, ListItem, ListItemAvatar, ListItemSecondaryAction, ListItemText, MenuItem, Select, Slide, Tooltip, Typography } from '@material-ui/core';
-
-import { indigo } from '@material-ui/core/colors';
+import { Card, CardContent, Checkbox, FormControl, Icon, IconButton, InputLabel, List, ListItem, ListItemText, MenuItem, Select, Slide, Tooltip, Typography } from '@material-ui/core';
 import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
 
-
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: indigo.A200
-        }
-    }
+const GlobalStyles = createTheme({
+    typography: {
+        fontFamily: 'Lato, Arial, sans-serif',
+    },
+    overrides: {
+        MuiCssBaseline: {
+            '@global': {
+                body: {
+                    fontFamily: 'Lato, Arial, sans-serif',
+                },
+            },
+        },
+    },
 });
+
+  
 
 const styles = {
     root: {
@@ -23,12 +27,13 @@ const styles = {
         top: 74,
         right: 10,
         width: 300,
-        borderRadius: 4,
+        borderRadius: 9,
         margin: 0,
-        zIndex: 900
+        zIndex: 900,
+        boxShadow: '-6px 6px 15px rgba(0, 0, 0, 0.15)',
     },
     header: {
-        backgroundColor: '#f1f1f1'
+        backgroundColor: 'rgb(138, 213, 137)'
     },
     closeBtn: {
         position: 'absolute',
@@ -42,41 +47,47 @@ const styles = {
     select: {
         width: '100%'
     },
-    placeholder: {
-        height: 28,
-        lineHeight: '28px',
-        cursor: 'pointer'
-    },
-    chipContainer: {
-        display: 'flex',
-        overflow: 'hidden'
-    },
-    chip: {
-        height: 28,
-        lineHeight: '28px',
-        marginRight: 5
-    },
     layerList: {
         marginTop: 6,
         paddingBottom: 0
     },
     layerItem: {
-        paddingLeft: 2
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingLeft: 2,
+        paddingRight: 5, // Ensure some space at the right
     },
-    sortAction: {
-        right: 12
+    layerText: {
+        flexGrow: 1,
+        maxWidth: '120px', // Set a max width for the layer text
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    checkbox: {
+        marginRight: '8px', // Add space between the checkbox and text
+    },
+    slider: {
+        width: '80px', // Adjust the width of the slider
+        marginLeft: '10px'
     }
 };
 
 class LayerController extends React.Component {
     state = {
         open: false,
-        mapp:null,
+        mapp: null,
         selected: {},
         resolution: 7,
         zoom: 0,
         layerForm: 'Border',
-        datasetss: {}
+        datasets: {},
+        layers: [],
+        assets: [], // Aquí guardaremos los assets de GEE
+        selectedAsset: '', // Aquí guardamos el asset seleccionado por el usuario
+        mapUrl: '' // Aquí guardamos la URL del mapa generado
+
     }
 
     handleCloseClick = () => {
@@ -85,12 +96,17 @@ class LayerController extends React.Component {
         });
     }
 
+    truncateLayerName = (name) => {
+        if (name.length > 13) {
+            return name.substring(0, 10) + '...'; // Keep the first 10 characters and add '...'
+        }
+        return name; // Return the name as is if it's 13 characters or fewer
+    }
+
     handleDatasetChange = async (e) => {
         var deleting = false;
         Object.keys(this.state.selected).map(item => {
-            //emitter.emit('removeDataset', item);
             deleting = true;
-                    
             this.setState({
                 selected: {}
             });
@@ -100,13 +116,52 @@ class LayerController extends React.Component {
         if (!deleting && e.target.value.length) {
             const id = e.target.value[e.target.value.length - 1];
             emitter.emit('showSnackbar', 'default', `Downloading dataset '${id}'.`);
-            emitter.emit('displayDataset', id, this.state.datasetss[id].data, '#f08');
+            emitter.emit('displayDataset', id, this.state.datasets[id].data, '#f08');
             emitter.emit('showSnackbar', 'success', `Dataset '${id}' downloaded successfully.`);
         }
-
-        
-
     };
+
+    handleShapeChange = (e) => {
+        this.setState({ shape: e.target.value });
+    }
+
+    // Toggle visibility of a layer and emit event to canvas.jsx
+    // Manejar el cambio de visibilidad
+    handleLayerVisibilityChange = (layerId) => {
+        const updatedLayers = this.state.layers.map(layer =>
+            layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
+        );
+        this.setState({ layers: updatedLayers });
+
+        // Emitimos un evento para cambiar la visibilidad de la capa en Canvas
+        emitter.emit('toggleLayerVisibility', layerId, updatedLayers.find(layer => layer.id === layerId).visible);
+    };
+
+    // Manejar el cambio de transparencia
+    handleTransparencyChange = (layerId, value) => {
+        const updatedLayers = this.state.layers.map(layer =>
+            layer.id === layerId ? { ...layer, transparency: value } : layer
+        );
+        this.setState({ layers: updatedLayers });
+
+        // Emitimos un evento para cambiar la transparencia de la capa en Canvas
+        emitter.emit('changeLayerTransparency', layerId, value / 100);  // Normalizamos de 0 a 1
+    };
+
+
+    // Función para cortar el nombre del asset después del "/0" o devolver el nombre si no lo tiene
+    splitAssetName = (assetPath) => {
+        const parts = assetPath.split('/'); // Dividimos el path por "/"
+        let lastPart = parts[parts.length - 1]; // Tomamos la última parte del path
+    
+        // Si el nombre comienza con "0", lo removemos
+        if (lastPart.startsWith('0')) {
+            lastPart = lastPart.substring(1); // Eliminar el primer carácter ("0")
+        }
+        
+        return lastPart; // Devolver la última parte procesada
+    };
+
 
     handleDrop = (event) => {
         event.preventDefault();
@@ -117,51 +172,34 @@ class LayerController extends React.Component {
             reader.onload = (e) => {
                 const data = JSON.parse(e.target.result);
                 const geoJsonData = data;
-                this.setState({ datasets: { ...this.state.datasets, [file.name]: { data: geoJsonData } } });
+
+                // Add the new layer with default visibility and transparency
+                const newLayer = { id: file.name, visible: true, transparency: 100 };
+
+                // Update layers and datasets
+                this.setState((prevState) => ({
+                    datasets: { ...prevState.datasets, [file.name]: { data: geoJsonData } },
+                    layers: [...prevState.layers, newLayer]
+                }));
+
                 emitter.emit('displayDataset', file.name, geoJsonData);
-                emitter.emit('showSnackbar', 'success', `Dataset '${file.name}' downloaded successfully.`);
+                emitter.emit('showSnackbar', 'success', `Dataset '${file.name}' added as a layer successfully.`);
             };
             reader.readAsText(file);
         }
-    };
-
-    updateDatasets = () => {
-        let layers = this.state.mapp; // Assuming map is passed as a prop
-        let newDatasets = {};
-        
-        console.log(layers);
-        
-        layers.forEach((layer) => {
-            // Filtrar las capas que no pertenezcan a la fuente 'composite'
-            console.log(layer)
-            if (layer.id === "predictedSOC") {
-                console.log(layer)
-                // Construir la estructura de newDatasets similar a datasets
-                newDatasets[layer.id] = {
-                    
-                };
-            }
-        });
-
-        console.log(newDatasets)
-    
-        console.log(Object.keys(newDatasets));
-
-        console.log(Object.values(newDatasets));
-
-        this.setState({
-            selected: newDatasets
-        });
-        // Actualizar el estado con el nuevo objeto datasets
-        this.setState({ datasetss: newDatasets});
-
-    }
-    
+    }; 
 
     componentDidMount() {
-        console.log("ASA")
+        this.fetchAssets();  // Cargar los assets de GEE
+
         this.openLayerControllerListener = emitter.addListener('openLayerController', () => {
             this.setState({ open: true });
+        });
+
+        this.newLayerListener = emitter.addListener('newLayer', (newLayer) => {
+            this.setState((prevState) => ({
+                layers: [...prevState.layers, newLayer]
+            }));
         });
 
         this.closeAllControllerListener = emitter.addListener('closeAllController', () => {
@@ -176,12 +214,8 @@ class LayerController extends React.Component {
             this.handleDatasetRemove();
         });
 
-        emitter.on('moveDataset', this.handleDataMoved);
-        emitter.on('moveMAP', this.handleMAPMoved);
-
         window.addEventListener('dragover', this.handleDragOver);
         window.addEventListener('drop', this.handleDrop);
-
     }
 
     componentDidUpdate(prevProps) {
@@ -190,17 +224,48 @@ class LayerController extends React.Component {
         }
     }
 
-    handleMAPMoved = (movedData) => {
-        console.log("ASASJ")
-        console.log(movedData)
-        let layers = movedData.getStyle().layers;
-        console.log(layers)
-        this.setState({ mapp: layers });
-        this.updateDatasets();
-    }
-    handleDataMoved = (movedData) => {
-        this.setState({ datasets: movedData });
-    }
+    fetchAssets = async () => {
+        try {
+            const response = await fetch('http://localhost:5004/list-assets');
+            const data = await response.json();
+            console.log(data.assets)
+            this.setState({ assets: data.assets });
+        } catch (error) {
+            console.error('Error fetching assets:', error);
+        }
+    };
+
+    fetchMapUrl = async (assetId, assetType) => {
+        try {
+            const response = await fetch('http://localhost:5004/get-map-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ asset_id: assetId, asset_type: assetType }),
+            });
+            const data = await response.json();
+            console.log(data);
+            this.setState({ mapUrl: data.map_url });
+            emitter.emit('moveURL', [data.map_url, assetId]);  // Emitir evento para Canvas
+        } catch (error) {
+            console.error('Error fetching map URL:', error);
+        }
+    };
+
+    handleAssetChange = (event) => {
+        const selectedAsset = event.target.value.id;  // Obtenemos el id del asset
+        const selectedType = event.target.value.type;  // Obtenemos el tipo del asset
+    
+        this.setState({
+            selectedAsset: selectedAsset,
+            selectedAssetType: selectedType
+        });
+    
+        // Obtener la URL del mapa del asset seleccionado
+        this.fetchMapUrl(selectedAsset, selectedType);
+    };
+    
 
     handleDatasetRemove() {
         this.setState({ datasets: {}, selected: {} });
@@ -211,149 +276,74 @@ class LayerController extends React.Component {
         emitter.removeListener(this.closeAllControllerListener);
         emitter.removeListener(this.setMapZoomListener);
         emitter.removeListener(this.handleDatasetRemoveListener);
+        emitter.removeListener(this.newLayerListener);  
         window.removeEventListener('dragover', this.handleDragOver);
         window.removeEventListener('drop', this.handleDrop);
     }
 
-    handleLayerFormBor = () => {
-        this.setState({ layerForm: 'Border' });
-    }
-
-    handleLayerFormHex = () => {
-        this.setState({ layerForm: 'Hexagonal' });
-    }
-
     render() {
-        console.log(this.state.selected)
+        console.log(this.state.layers)
         return (
-            <MuiThemeProvider theme={theme}>
+            <MuiThemeProvider theme={GlobalStyles}>
                 <Slide direction="left" in={this.state.open}>
                     <Card style={styles.root}>
                         <CardContent style={styles.header}>
-                            <Typography gutterBottom variant="h5" component="h2">Layers</Typography>
-                            <Typography variant="body2" color="textSecondary">Download and display layers</Typography>
-                            <Tooltip title="Hexagons" aria-label="Hexagons" enterDelay={200}>
-                                <IconButton aria-label="Hexagons" onClick={this.handleLayerFormHex}>
-                                    <Icon fontSize="inherit">crop</Icon>
-                                </IconButton>
-                            </Tooltip>
-
-                            <Tooltip title="Border" aria-label="Border" enterDelay={200} onClick={this.handleLayerFormBor}>
-                                <IconButton aria-label="Border">
-                                    <Icon fontSize="inherit">border_style</Icon>
-                                </IconButton>
-                            </Tooltip>
-
-                            <IconButton style={styles.closeBtn} aria-label="Close" onClick={this.handleCloseClick}>
+                            <Typography gutterBottom style={{ fontFamily: 'Lato, Arial, sans-serif', color:'white', fontWeight:'3' }} variant="h5" component="h2">Layers</Typography>
+                            <Typography variant="body2" color="textSecondary">Manage and control layers</Typography>
+                            <IconButton style={styles.closeBtn} aria-label="Close" onClick={() => this.setState({ open: false })}>
                                 <Icon fontSize="inherit">chevron_right</Icon>
                             </IconButton>
                         </CardContent>
-                        {this.state.layerForm === 'Hexagonal' ?
-                            <CardContent style={this.state.selected.length ? styles.content : null}>
-                                <FormControl style={styles.select}>
-                                    <InputLabel shrink htmlFor="resolution-label">Resolution</InputLabel>
-                                    &nbsp;&nbsp;&nbsp;
-                                    <Slider
-                                        value={this.state.resolution}
-                                        min={1}
-                                        max={15}
-                                        step={1}
-                                        onChange={this.handleResolutionChange}
-                                    />
-                                    <Select
-                                        displayEmpty
-                                        value={this.state.selected}
-                                        onChange={this.handleDatasetChange}
-                                        input={<Input id="dataset-label" />}
-                                        renderValue={selected => (
-                                            selected.length ?
-                                                <div style={styles.chipContainer}>
-                                                    {Object.keys(this.state.selected).map(item => (
-                                                        <Chip key={item} style={styles.chip} label={item} />
-                                                    ))}
-                                                </div> :
-                                                <InputLabel style={styles.placeholder}>Choose layers</InputLabel>
-                                        )}
+
+                        <CardContent style={styles.content}>
+
+                        <FormControl style={styles.select}>
+                                <InputLabel>Assets</InputLabel>
+                                <Select
+                                    value={this.state.selectedAsset}
+                                    onChange={this.handleAssetChange}
+                                >
+                                    {this.state.assets.map(asset => (
+                                        <MenuItem
+                                        key={asset.id}
+                                        value={{ id: asset.id, type: asset.type }}  // Pasamos un objeto con id y type
                                     >
-                                        {Object.keys(this.state.datasetss).map(item => (
-                                            <MenuItem key={item} value={item}>
-                                                <Checkbox
-                                                    checked={Object.keys(this.state.selected).indexOf(item) > -1}
-                                                    color="primary"
-                                                    onChange={this.handleDatasetChange}
-                                                    value={item}
-                                                />
-                                                <ListItemText primary={item} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                    <List id="layers" style={styles.layerList}>
-                                    {Object.keys(this.state.selected).map(item => (
-                                            <ListItem style={styles.layerItem} key={item}>
-                                                <ListItemAvatar>
-                                                    <Avatar>
-                                                        <Icon color="action">layers</Icon>
-                                                    </Avatar>
-                                                </ListItemAvatar>
-                                                <ListItemText primary={item} />
-                                                <ListItemSecondaryAction style={styles.sortAction}>
-                                                    <IconButton className="handle" edge="end" aria-label="Sort" disableRipple disableFocusRipple>
-                                                        <Icon>menu</Icon>
-                                                    </IconButton>
-                                                </ListItemSecondaryAction>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                            </CardContent>
-                            : <CardContent style={Object.keys(this.state.selected).length ? styles.content : null}>
-                                <FormControl style={styles.select}>
-                                    <Select
-                                        displayEmpty
-                                        value={this.state.selected}
-                                        onChange={this.handleDatasetChange}
-                                        input={<Input id="dataset-label" />}
-                                        renderValue={selected => (
-                                            selected.length ?
-                                                <div style={styles.chipContainer}>
-                                                    {Object.keys(this.state.selected).map(item => (
-                                                        <Chip key={item} style={styles.chip} label={item} />
-                                                    ))}
-                                                </div> :
-                                                <InputLabel style={styles.placeholder}>Choose layers</InputLabel>
-                                        )}
-                                    >
-                                        {Object.keys(this.state.datasetss).map(item => (
-                                            <MenuItem key={item} value={item}>
-                                                <Checkbox
-                                                    checked={Object.keys(this.state.selected).indexOf(item) > -1}
-                                                    color="primary"
-                                                    onChange={this.handleDatasetChange}
-                                                    value={item}
-                                                />
-                                                <ListItemText primary={item} />
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                                    <List id="layers" style={styles.layerList}>
-                                        {Object.keys(this.state.selected).map(item => (
-                                            <ListItem style={styles.layerItem} key={item}>
-                                                <ListItemAvatar>
-                                                    <Avatar>
-                                                        <Icon color="action">layers</Icon>
-                                                    </Avatar>
-                                                </ListItemAvatar>
-                                                <ListItemText primary={item} />
-                                                <ListItemSecondaryAction style={styles.sortAction}>
-                                                    <IconButton className="handle" edge="end" aria-label="Sort" disableRipple disableFocusRipple>
-                                                        <Icon>menu</Icon>
-                                                    </IconButton>
-                                                </ListItemSecondaryAction>
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                            </CardContent>}
+                                {this.splitAssetName(asset.id)}
+                                </MenuItem>
+                                    ))}
+                                </Select>
+                        </FormControl>
+                            
+                            <List id="layers" style={styles.layerList}>
+                                {this.state.layers.map(layer => (
+                                    <ListItem style={styles.layerItem} key={layer.id}>
+                                        <ListItemText primary={
+                                            <span style={styles.layerText}>
+                                                            <Tooltip title={this.splitAssetName(layer.id)} sx={{ fontSize: '1.2rem' }} // Aumentar el tamaño de la fuente en la tooltip
+                                                            >
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                {this.truncateLayerName(this.splitAssetName(layer.id))}
+                </span>
+            </Tooltip>
+                                            </span>
+                                        } />
+                                        <Checkbox
+                                            checked={layer.visible}
+                                            onChange={() => this.handleLayerVisibilityChange(layer.id)}
+                                            color="primary"
+                                        />
+                                        <Slider
+                                            value={layer.transparency}
+                                            onChange={(e, value) => this.handleTransparencyChange(layer.id, value)}
+                                            min={0}
+                                            max={100}
+                                            style={{ width: '100px' }}
+                                        />
+                                    </ListItem>
+                                ))}
+                            </List>
+
+                        </CardContent>
                     </Card>
                 </Slide>
             </MuiThemeProvider>

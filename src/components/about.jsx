@@ -10,8 +10,7 @@ const styles = {
         zIndex: 900
     },
     logoContainer: {
-        height: '60px',
-        padding: '2px 10px 1px 0px;',
+        height: '60px'
     },
     logo: {
         height: '55px',

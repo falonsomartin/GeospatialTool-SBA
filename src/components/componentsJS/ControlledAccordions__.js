@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { Backdrop , CircularProgress, Checkbox, FormControlLabel, FormGroup, InputLabel, MenuItem,TextField, FormControl, Grid, Button, RadioGroup, Radio, Select} from '@material-ui/core';
+import { Backdrop , CircularProgress, TextField, Grid, Button} from '@material-ui/core';
 import { AttachFile, Description, PictureAsPdf, Theaters } from '@material-ui/icons';
 import { DropzoneArea } from 'material-ui-dropzone';
 import Accordion from '@material-ui/core/Accordion';
@@ -68,9 +68,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ControlledAccordions({onSubmit}) {
   const classes = useStyles();
-  const [numericColumns, setNumericColumns] = useState([]);
-  const [selectedColumn, setSelectedColumn] = useState('');
-  const [selectedOption, setSelectedOption] = useState('rf');
+  const [, setNumericColumns] = useState([]);
+  const [, setSelectedOption] = useState('rf');
   const [expanded, setExpanded] = useState(false);
   const [formData, setFormData] = useState({
     rf: false,
@@ -204,9 +203,6 @@ export default function ControlledAccordions({onSubmit}) {
          method: 'POST',
          body: data
       });
-      //const response = await fetch('http://localhost:5004/watsat', {
-      //   method: 'GET'
-      // });
 
       const result = await response.json();
       if(result){
@@ -291,7 +287,7 @@ export default function ControlledAccordions({onSubmit}) {
 
 
       </div>
-      <Button onClick={handleSubmit} color="#89ca92" variant="contained">Submit Data</Button>
+      <Button onClick={handleSubmit} color="primary" variant="contained">Submit Data</Button>
       <Backdrop className={classes.backdrop} open={loading}>
         <CircularProgress color="inherit" />
         <Typography variant="h6" className={classes.progressText}>

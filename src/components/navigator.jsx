@@ -28,7 +28,6 @@ const styles = {
     },
     logoContainer: {
         height: '60px',
-        padding: '2px 10px 1px 0px;',
     },
     logo: {
         height: '55px',
@@ -135,17 +134,6 @@ class Navigator extends React.Component {
                                     <Icon style={styles.fontIcon}>info_outline</Icon>
                                 </IconButton>
                             </Tooltip>
-                            {this.state.token!=null ?
-                                <Tooltip title="Logout" aria-label="Logout" enterDelay={200}>
-                                    <IconButton className="icon-container" aria-label="Logout" color="inherit" onClick={this.handleLogoutClick}>
-                                        <Icon style={styles.fontIcon}>exit_to_app</Icon>
-                                    </IconButton>
-                                </Tooltip> :
-                                <Tooltip title="Login" aria-label="Login" enterDelay={200}>
-                                    <IconButton className="icon-container" aria-label="Login" color="inherit" onClick={this.handleLoginClick}>
-                                        <Icon style={styles.fontIcon}>account_circle</Icon>
-                                    </IconButton>
-                                </Tooltip>}
                         </div>
                     </Toolbar>
                 </AppBar>

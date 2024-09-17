@@ -11,9 +11,7 @@ import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
 import indigo from '@material-ui/core/colors/indigo';
 
 import emitter from '@utils/events.utils';
-import request from '@utils/request.utils';
-import { checkEmptyObject } from '@utils/method.utils';
-import { ACCESS_TOKEN, SERVICE } from '@/config';
+import { ACCESS_TOKEN } from '@/config';
 
 import '@styles/dataController.style.css';
 import ControlledAccordions from '@components/componentsJS/ControlledAccordions__';
@@ -196,42 +194,6 @@ class RusleController extends React.Component {
         previewCoordinate: {},
         loading: true,
         traces: [],
-        precipitationData:[],
-        temperatureData: [],
-        watsatData: [],
-        layoutTemperature: {
-            title: 'Temperatura del Aire HC',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Temperatura (°C)' }
-        },
-        layoutPrecipitation: {
-            title: 'Precipitación',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Precipitación (mm)' }
-        },
-        layoutWatsat: {
-            title: 'Modelo Watsat',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Contenido Volumétrico de Agua' }
-        },
-        layout: {
-            barmode: 'stack',
-            title: 'Avistamientos de insectos por día',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Cantidad' }
-        },
         items: [
             {id: 1, title: 'item #1'},
             {id: 2, title: 'item #2'},
@@ -241,29 +203,7 @@ class RusleController extends React.Component {
           ]
         ,
         data: [],
-        expanded:false,
-        searchOptions: [
-            {
-                value: 'gid',
-                label: 'Gid',
-                checked: true
-            },
-            {
-                value: 'name',
-                label: 'Name',
-                checked: true
-            },
-            {
-                value: 'pinyin',
-                label: 'Pinyin',
-                checked: true
-            },
-            {
-                value: 'introduction',
-                label: 'Introduction',
-                checked: false
-            }
-        ]
+        expanded:false
     }
 
     calculateSustainabilityIndex = () => {
@@ -433,29 +373,6 @@ class RusleController extends React.Component {
             return true;
         });
 
-        // Initiate request
-        request({
-            url: SERVICE.search.url,
-            method: SERVICE.search.method,
-            params: {
-                keyword: keyword,
-                options: JSON.stringify(options)
-            },
-            successCallback: (res) => {
-                // Display data
-                this.setState({
-                    addPointWrapperClose: false,
-                    resultUnwrap: true,
-                    data: res.data
-                }, this.initMaterialbox);
-            },
-            finallyCallback: () => {
-                // Show search button
-                this.setState({
-                    searching: false
-                });
-            }
-        });
     }
 
     handlePreviewClick = (e, data) => {
@@ -476,50 +393,6 @@ class RusleController extends React.Component {
         this.setState({ [event.target.name]: Number(event.target.value) });
     };
 
-    calculateSustainabilityIndex = () => {
-        const { Ic, Ih, Ig, Io, If, IoType } = this.state;
-        let IoValue = Io === 1 ? IoType : 0;
-        const index = 2.45 * Ic + 2.18 * Ih + 1.64 * Ig + 1.09 * IoValue + 1 * If;
-        this.setState({ sustainabilityIndex: index });
-    };
-
-    handleSubmitClick = () => {
-        // Remove temp point
-        emitter.emit('removeTempPoint');
-
-        // Show button progress
-        this.setState({
-            submitting: true
-        });
-
-        // Generate request parameters
-        var params = {
-            name: document.getElementById('name').value,
-            pinyin: document.getElementById('pinyin').value,
-            introduction: document.getElementById('introduction').value,
-            image: this.state.previewImage ? this.state.previewImage : {},
-            geometry: this.state.geometry
-        };
-
-        // Initiate request
-        request({
-            url: SERVICE.insert.url,
-            method: SERVICE.insert.method,
-            params: params,
-            successCallback: (res) => {
-                // Show snackbar
-                emitter.emit('showSnackbar', 'success', `Insert new object with Gid = '${res.gid}' successfully.`);
-
-                this.handleCancelClick();
-            },
-            finallyCallback: () => {
-                this.setState({
-                    searching: false,
-                    submitting: false
-                });
-            }
-        });
-    }
 
     handleCancelClick = () => {
         // Remove temp point
@@ -540,97 +413,7 @@ class RusleController extends React.Component {
         });
     }
 
-    handleRowUpdate = (newData, oldData) => {
-        return new Promise(resolve => {
-            // Check if Gid changed
-            if (oldData.gid !== newData.gid) {
-                emitter.emit('showSnackbar', 'error', "Column 'Gid' is readonly.");
-            }
 
-            // Generate request parameters
-            var params = {
-                gid: oldData.gid
-            };
-
-            if (this.state.previewImage) {
-                newData.image = this.state.previewImage;
-            } else {
-                newData.image = {};
-            }
-
-            Object.keys(newData).map(key => {
-                if (key !== 'geometry' && newData[key] !== oldData[key]) {
-                    params[key] = newData[key]
-                }
-                return true;
-            });
-
-            // return if nothing to update
-            if (checkEmptyObject(params)) {
-                emitter.emit('showSnackbar', 'default', 'Nothing to update.');
-                return;
-            }
-
-            // Initiate request
-            request({
-                url: SERVICE.update.url,
-                method: SERVICE.update.method,
-                params: params,
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Update ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = this.state.data;
-                    data[data.indexOf(oldData)] = newData;
-                    this.setState({
-                        data: data
-                    });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
-        });
-    }
-
-    handleRowDelete = (oldData) => {
-        return new Promise(resolve => {
-            // Initiate request
-            request({
-                url: SERVICE.delete.url,
-                method: SERVICE.delete.method,
-                params: {
-                    gid: oldData.gid
-                },
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Delete ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = [...this.state.data];
-                    data.splice(data.indexOf(oldData), 1);
-                    this.setState({ ...this.state, data });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Remove temp layer
-                    emitter.emit('removeTempLayer');
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
-        });
-    }
 
     componentDidMount() {
         // Initialize popover

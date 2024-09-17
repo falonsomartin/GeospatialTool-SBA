@@ -270,9 +270,6 @@ export default function ControlledAccordions({onSubmit}) {
          method: 'POST',
          body: data
       });
-      //const response = await fetch('http://localhost:5004/watsat', {
-      //   method: 'GET'
-      // });
 
       const result = await response.json();
       if(result){
@@ -497,7 +494,7 @@ export default function ControlledAccordions({onSubmit}) {
 
 
       </div>
-      <Button onClick={handleSubmit} color="#89ca92" variant="contained">Submit Data</Button>
+      <Button onClick={handleSubmit} color="primary" variant="contained">Submit Data</Button>
       <Backdrop className={classes.backdrop} open={loading}>
         <CircularProgress color="inherit" />
         <Typography variant="h6" className={classes.progressText}>

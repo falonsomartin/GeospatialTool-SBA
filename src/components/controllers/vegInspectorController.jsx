@@ -10,8 +10,7 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import indigo from '@material-ui/core/colors/indigo';
 
 import emitter from '@utils/events.utils';
-import request from '@utils/request.utils';
-import { ACCESS_TOKEN, SERVICE } from '@/config';
+import { ACCESS_TOKEN } from '@/config';
 
 import '@styles/dataController.style.css';
 import ControlledAccordions from '@components/componentsJS/ControlledAccordions_';
@@ -260,28 +259,6 @@ class VegInspectorController extends React.Component {
         });
 
         // Initiate request
-        request({
-            url: SERVICE.search.url,
-            method: SERVICE.search.method,
-            params: {
-                keyword: keyword,
-                options: JSON.stringify(options)
-            },
-            successCallback: (res) => {
-                // Display data
-                this.setState({
-                    addPointWrapperClose: false,
-                    resultUnwrap: true,
-                    data: res.data
-                }, this.initMaterialbox);
-            },
-            finallyCallback: () => {
-                // Show search button
-                this.setState({
-                    searching: false
-                });
-            }
-        });
     }
 
     handlePreviewClick = (e, data) => {
@@ -302,44 +279,6 @@ class VegInspectorController extends React.Component {
         this.setState({ [event.target.name]: Number(event.target.value) });
     };
 
-
-    handleSubmitClick = () => {
-        // Remove temp point
-        emitter.emit('removeTempPoint');
-
-        // Show button progress
-        this.setState({
-            submitting: true
-        });
-
-        // Generate request parameters
-        var params = {
-            name: document.getElementById('name').value,
-            pinyin: document.getElementById('pinyin').value,
-            introduction: document.getElementById('introduction').value,
-            image: this.state.previewImage ? this.state.previewImage : {},
-            geometry: this.state.geometry
-        };
-
-        // Initiate request
-        request({
-            url: SERVICE.insert.url,
-            method: SERVICE.insert.method,
-            params: params,
-            successCallback: (res) => {
-                // Show snackbar
-                emitter.emit('showSnackbar', 'success', `Insert new object with Gid = '${res.gid}' successfully.`);
-
-                this.handleCancelClick();
-            },
-            finallyCallback: () => {
-                this.setState({
-                    searching: false,
-                    submitting: false
-                });
-            }
-        });
-    }
 
     handleCancelClick = () => {
         // Remove temp point

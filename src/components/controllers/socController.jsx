@@ -11,9 +11,7 @@ import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
 import indigo from '@material-ui/core/colors/indigo';
 
 import emitter from '@utils/events.utils';
-import request from '@utils/request.utils';
-import { checkEmptyObject } from '@utils/method.utils';
-import { ACCESS_TOKEN, SERVICE } from '@/config';
+import { ACCESS_TOKEN } from '@/config';
 
 import '@styles/dataController.style.css';
 import ControlledAccordions from '@components/componentsJS/ControlledAccordions';
@@ -194,85 +192,8 @@ class SocController extends React.Component {
         previewImage: null,
         previewMapUrl: null,
         previewCoordinate: {},
-        loading: true,
-        traces: [],
-        precipitationData:[],
-        temperatureData: [],
-        watsatData: [],
-        layoutTemperature: {
-            title: 'Temperatura del Aire HC',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Temperatura (°C)' }
-        },
-        layoutPrecipitation: {
-            title: 'Precipitación',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Precipitación (mm)' }
-        },
-        layoutWatsat: {
-            title: 'Modelo Watsat',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Contenido Volumétrico de Agua' }
-        },
-        layout: {
-            barmode: 'stack',
-            title: 'Avistamientos de insectos por día',
-            xaxis: {
-                title: 'Fecha',
-                type: 'date'
-            },
-            yaxis: { title: 'Cantidad' }
-        },
-        items: [
-            {id: 1, title: 'item #1'},
-            {id: 2, title: 'item #2'},
-            {id: 3, title: 'item #3'},
-            {id: 4, title: 'item #4'},
-            {id: 5, title: 'item #5'}
-          ]
-        ,
-        data: [],
-        expanded:false,
-        searchOptions: [
-            {
-                value: 'gid',
-                label: 'Gid',
-                checked: true
-            },
-            {
-                value: 'name',
-                label: 'Name',
-                checked: true
-            },
-            {
-                value: 'pinyin',
-                label: 'Pinyin',
-                checked: true
-            },
-            {
-                value: 'introduction',
-                label: 'Introduction',
-                checked: false
-            }
-        ]
+        loading: true
     }
-
-    calculateSustainabilityIndex = () => {
-        let IoValue = this.state.Io === 1 ? this.state.IoType : 0; // Ajustar el valor de Io basado en si se aplica o no fertilizante
-        const index = 2.45 * this.state.Ic + 2.18 * this.state.Ih + 1.64 * this.state.Ig + 1.09 * IoValue + 1 * this.state.If;
-        this.setState({
-            sustainabilityIndex:index
-        })
-    };
 
     handleDecision = (choice) => {
         this.setState({ decision: choice });
@@ -432,30 +353,6 @@ class SocController extends React.Component {
             options[item.value] = item.checked;
             return true;
         });
-
-        // Initiate request
-        request({
-            url: SERVICE.search.url,
-            method: SERVICE.search.method,
-            params: {
-                keyword: keyword,
-                options: JSON.stringify(options)
-            },
-            successCallback: (res) => {
-                // Display data
-                this.setState({
-                    addPointWrapperClose: false,
-                    resultUnwrap: true,
-                    data: res.data
-                }, this.initMaterialbox);
-            },
-            finallyCallback: () => {
-                // Show search button
-                this.setState({
-                    searching: false
-                });
-            }
-        });
     }
 
     handlePreviewClick = (e, data) => {
@@ -492,33 +389,8 @@ class SocController extends React.Component {
             submitting: true
         });
 
-        // Generate request parameters
-        var params = {
-            name: document.getElementById('name').value,
-            pinyin: document.getElementById('pinyin').value,
-            introduction: document.getElementById('introduction').value,
-            image: this.state.previewImage ? this.state.previewImage : {},
-            geometry: this.state.geometry
-        };
 
         // Initiate request
-        request({
-            url: SERVICE.insert.url,
-            method: SERVICE.insert.method,
-            params: params,
-            successCallback: (res) => {
-                // Show snackbar
-                emitter.emit('showSnackbar', 'success', `Insert new object with Gid = '${res.gid}' successfully.`);
-
-                this.handleCancelClick();
-            },
-            finallyCallback: () => {
-                this.setState({
-                    searching: false,
-                    submitting: false
-                });
-            }
-        });
     }
 
     handleCancelClick = () => {
@@ -537,98 +409,6 @@ class SocController extends React.Component {
         // Wrap add point panel
         this.setState({
             addPointUnwrap: false
-        });
-    }
-
-    handleRowUpdate = (newData, oldData) => {
-        return new Promise(resolve => {
-            // Check if Gid changed
-            if (oldData.gid !== newData.gid) {
-                emitter.emit('showSnackbar', 'error', "Column 'Gid' is readonly.");
-            }
-
-            // Generate request parameters
-            var params = {
-                gid: oldData.gid
-            };
-
-            if (this.state.previewImage) {
-                newData.image = this.state.previewImage;
-            } else {
-                newData.image = {};
-            }
-
-            Object.keys(newData).map(key => {
-                if (key !== 'geometry' && newData[key] !== oldData[key]) {
-                    params[key] = newData[key]
-                }
-                return true;
-            });
-
-            // return if nothing to update
-            if (checkEmptyObject(params)) {
-                emitter.emit('showSnackbar', 'default', 'Nothing to update.');
-                return;
-            }
-
-            // Initiate request
-            request({
-                url: SERVICE.update.url,
-                method: SERVICE.update.method,
-                params: params,
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Update ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = this.state.data;
-                    data[data.indexOf(oldData)] = newData;
-                    this.setState({
-                        data: data
-                    });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
-        });
-    }
-
-    handleRowDelete = (oldData) => {
-        return new Promise(resolve => {
-            // Initiate request
-            request({
-                url: SERVICE.delete.url,
-                method: SERVICE.delete.method,
-                params: {
-                    gid: oldData.gid
-                },
-                successCallback: (res) => {
-                    // Show success snackbar
-                    var message = `Delete ${res.count} ${res.count > 1 ? 'objects' : 'object'} successfully.`;
-                    emitter.emit('showSnackbar', 'success', message);
-
-                    // Refresh table
-                    var data = [...this.state.data];
-                    data.splice(data.indexOf(oldData), 1);
-                    this.setState({ ...this.state, data });
-                },
-                finallyCallback: () => {
-                    // Resolve promise
-                    resolve();
-
-                    // Remove temp layer
-                    emitter.emit('removeTempLayer');
-
-                    // Exit edit mode
-                    this.handleDoneEdit();
-                }
-            });
         });
     }
 

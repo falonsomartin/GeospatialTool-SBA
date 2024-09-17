@@ -1,10 +1,12 @@
 /* Written by Ye Liu */
 
 const mapStyles = {
-    Satellite:'mapbox://styles/mapbox/satellite-v9',
-    Custom:'mapbox://styles/almafe2510/clw7qv6il02ok01qr9w4wdbv0',
-    Standard: ''
+    Streets: 'mapbox://styles/mapbox/streets-v11',
+    Light: 'mapbox://styles/mapbox/light-v10',
+    Dark: 'mapbox://styles/mapbox/dark-v10',
+    Navigation: 'mapbox://styles/mapbox/navigation-night-v1'
 };
+
 
 const buildHeatmapStyle = (color) => {
     const heatmap = {
@@ -27,5 +29,6 @@ const buildPolygonStyle = (color) => {
 
     return polygon;
 }
+
 
 export { mapStyles, buildHeatmapStyle, buildPolygonStyle };

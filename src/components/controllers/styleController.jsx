@@ -95,6 +95,7 @@ class StyleController extends React.Component {
                     <CardContent>
                         <Grid container spacing={2}>
                             {Object.keys(mapStyles).map((item, index) => {
+                                console.log(item)
                                 return (
                                     <Grid item style={styles.styleCard} key={index} xs={3}>
                                         <img src={`./static/assets/${item}.png`} alt="" className="hoverable" style={styles.stylePreview} onClick={this.handleStyleClick.bind(this, item)} />

@@ -67,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function HorizontalLinearStepperData({ onSubmit }) {
   const classes = useStyles();
-  const [numericColumns, setNumericColumns] = useState([]);
+  const [, setNumericColumns] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
   const [plotData, setPlotData] = useState([]);
   const [formData, setFormData] = useState({
@@ -76,7 +76,6 @@ export default function HorizontalLinearStepperData({ onSubmit }) {
     equipmentType: '',
     dataType: ''
   });
-  const [dataTypes, setDataTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -271,6 +270,7 @@ export default function HorizontalLinearStepperData({ onSubmit }) {
             />
           </Box>
         );
+        default:
     }
   };
 
